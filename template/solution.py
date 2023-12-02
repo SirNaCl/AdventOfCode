@@ -3,6 +3,8 @@ import pytest
 from aocd import get_data
 
 PUZZLE_DIR = pathlib.Path(__file__).parent
+YEAR = int(PUZZLE_DIR.parent.name)
+DAY = int(PUZZLE_DIR.name)
 
 
 def get_session():
@@ -34,7 +36,5 @@ def solve(puzzle_input):
 
 if __name__ == "__main__":
     assert pytest.main(PUZZLE_DIR) != 1
-    puzzle_input = get_data(
-        session=get_session(), year=2023, day=None  # TODO: Set today's date
-    )
+    puzzle_input = get_data(session=get_session(), year=YEAR, day=DAY)
     print(solve(puzzle_input))
