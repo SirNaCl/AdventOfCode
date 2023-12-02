@@ -36,21 +36,25 @@ def solve(puzzle_input):
 
 
 def submit(puzzle, ans_a, ans_b):
-    if not puzzle.answered_a and ans_a is not None:
-        print(f"Submitting {ans_a} as answer to part 1")
+    if ans_a is None:
+        print("No solution for part 1, skipping submission!")
+    elif puzzle.answered_a:
+        print(
+            f"Already submitted correct answer a: {puzzle.answer_a}, you tried to submit {ans_a}!"
+        )
+    else:
+        print(f"Submitting {ans_a} as answer to part 1:")
         puzzle.answer_a = ans_a
-    else:
-        print(
-            f"Already submitted correct answer a: {puzzle.answer_a}, you tried to submit {ans_a}"
-        )
 
-    if not puzzle.answered_b and ans_b is not None:
-        print(f"Submitting {ans_b} as answer to part 2")
-        puzzle.answer_b = ans_b
-    else:
+    if ans_b is None:
+        print("No solution for part 2, skipping submission!")
+    elif puzzle.answered_b:
         print(
-            f"Already submitted correct answer b: {puzzle.answer_b}, you tried to submit {ans_b}"
+            f"Already submitted correct answer b: {puzzle.answer_b}, you tried to submit {ans_b}!"
         )
+    else:
+        print(f"Submitting {ans_b} as answer to part 2:")
+        puzzle.answer_b = ans_b
 
 
 def main():
