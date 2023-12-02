@@ -56,7 +56,7 @@ def submit(puzzle, ans_a, ans_b):
 def main():
     init()
     puzzle = Puzzle(YEAR, DAY)
-    assert pytest.main(PUZZLE_DIR) != 1
+    assert pytest.main(PUZZLE_DIR) == 0
     ans = solve(puzzle.input_data)
     submit(puzzle, *ans)
 
