@@ -4,25 +4,28 @@ import pathlib
 import sys
 import functools
 
+
 class Node:
     def __init__(self, flowrate: int):
         self.open = False
         self.flowrate = flowrate
         self.tunnels = []
-    
+
     def add_tunnel(self, Node):
         self.tunnels.append(Node)
-    
+
     def calc_path(self, time: int):
         if time < 1:
             return 0
-        
-        skip = max([t.calc_path(time-1) for t in self.tunnels])
+
+        skip = max([t.calc_path(time - 1) for t in self.tunnels])
 
         if self.open:
             return skip
 
-        stay = self.flowrate * (time-1) + max([t.calc_path(time-2) for t in self.tunnels])
+        stay = self.flowrate * (time - 1) + max(
+            [t.calc_path(time - 2) for t in self.tunnels]
+        )
         print(stay)
 
         if skip < stay:
@@ -42,20 +45,21 @@ def parse(puzzle_input: str):
     data = {}
     start = None
 
-    for line in puzzle_input.split('\n'):
-        words = line.replace(',', '').split(" ")
+    for line in puzzle_input.split("\n"):
+        words = line.replace(",", "").split(" ")
         name = words[1]
         if start is None:
             start = name
         rate = words[4][5:-1]
-        tunnels = words[9:] 
+        tunnels = words[9:]
         data[name] = (Node(int(rate)), tunnels)
 
     for name, (node, nbs) in data.items():
         for nb in nbs:
             node.add_tunnel(data[nb][0])
-    
+
     return data[start][0]
+
 
 def part1(data: Node):
     """Solve part 1."""

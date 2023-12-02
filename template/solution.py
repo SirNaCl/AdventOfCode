@@ -1,12 +1,13 @@
-from aocd.models import Puzzle
-import os
 import pathlib
-import sys
+import pytest
+from aocd import get_data
+
+PUZZLE_DIR = pathlib.Path(__file__).parent
 
 
-def init():
+def get_session():
     with open("aoc-key", "r") as keyfile:
-        os.environ["AOC_SESSION"] = keyfile.read()
+        return keyfile.read()
 
 
 def parse(puzzle_input):
@@ -23,7 +24,8 @@ def part2(data):
 
 def solve(puzzle_input):
     """Solve the puzzle for the given input."""
-    data = parse(puzzle_input)
+    parsed = parse(puzzle_input)
+    data = parsed if parsed is not None else puzzle_input
     solution1 = part1(data)
     solution2 = part2(data)
 
@@ -31,9 +33,8 @@ def solve(puzzle_input):
 
 
 if __name__ == "__main__":
-    init()
-    for path in sys.argv[1:]:
-        print(f"{path}:")
-        puzzle_input = pathlib.Path(path).read_text().strip()
-        solutions = solve(puzzle_input)
-        print("\n".join(str(solution) for solution in solutions))
+    assert pytest.main(PUZZLE_DIR) != 1
+    puzzle_input = get_data(
+        session=get_session(), year=2023, day=None  # TODO: Set today's date
+    )
+    print(solve(puzzle_input))

@@ -1,8 +1,6 @@
 import pathlib
 import pytest
 import solution as sol
-import datetime
-import aocd
 
 PUZZLE_DIR = pathlib.Path(__file__).parent
 
@@ -30,10 +28,9 @@ def test_part1_example1(example1):
     assert sol.part1(example1) == 8
 
 
-@pytest.mark.skip(reason="Not implemented")
 def test_part2_example1(example1):
     """Test part 2 on example input."""
-    assert sol.part2(example1) == ...
+    assert sol.part2(example1) == 2286
 
 
 @pytest.mark.skip(reason="Not implemented")

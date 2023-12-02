@@ -1,1 +1,6 @@
 aoc-key
+__pycache__/
+.devcontainer/
+.pytest_cache/
+*.bak
+.vscode/
