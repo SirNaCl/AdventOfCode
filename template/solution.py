@@ -8,11 +8,7 @@ YEAR = int(PUZZLE_DIR.parent.name)
 DAY = int(PUZZLE_DIR.name)
 
 
-def init():
-    with open("aoc-key", "r") as keyfile:
-        os.environ["AOC_SESSION"] = keyfile.read()
-
-
+#### SOLUTION ####
 def parse(puzzle_input):
     """Parse input."""
 
@@ -23,6 +19,12 @@ def part1(data):
 
 def part2(data):
     """Solve part 2."""
+
+
+#### UTILITY FUNCTIONS ####
+def init():
+    with open("aoc-key", "r") as keyfile:
+        os.environ["AOC_SESSION"] = keyfile.read()
 
 
 def solve(puzzle_input):
