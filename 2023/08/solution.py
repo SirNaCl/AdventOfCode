@@ -1,3 +1,4 @@
+from math import lcm
 import pathlib
 import time
 import pytest
@@ -26,6 +27,7 @@ class Ghost:
     def __init__(self, loc, m):
         self.loc = loc
         self.m = m
+        self.period = -1
 
     def done(self):
         return self.loc[-1] == "Z"
@@ -45,86 +47,23 @@ def part1(data):
     return i
 
 
-class Node:
-    def __init__(self, name, L=None, R=None, cost=[-1, -1]):
-        self.name = name
-        self.L = L
-        self.R = R
-        self.cost = cost
-
-    def __str__(self):
-        if self.L is not None and self.R is not None:
-            return f"{self.name} => {self.L.name}: {self.R.name}"
-        return self.name
-
-    def calc_cost(self, go2L, at_start=False, d=1, ma=100):
-        if not at_start and self.name[-1] == "Z":
-            return 0
-
-        if d >= ma:
-            return ma
-
-        if go2L:
-            if self.cost[0] == -1:
-                if self.L is None:
-                    return ma
-                if self.L.name == self.name:
-                    c = self.cost[1]
-                else:
-                    c = self.L.calc_cost(False, False, d + 1) + 1
-                self.cost[0] = c
-
-            if not at_start and self.name[-1] == "Z":
-                return 0
-
-            return self.cost[0]
-
-        if self.cost[1] == -1:
-            if self.R is None:
-                return ma
-
-            if self.R.name == self.name:
-                c = self.cost[0]
-            else:
-                c = self.R.calc_cost(True, False, d + 1) + 1
-
-            self.cost[1] = c
-
-        if not at_start and self.name[-1] == "Z":
-            return 0
-
-        return self.cost[1]
-
-
 def part2(data):
     """Solve part 2."""
     turns, m = data
-    i = 0
     ghosts = []
-    network = {}
-    for key, item in m.items():
-        network[key] = Node(key)
+    periods = []
+    for key in m.keys():
         if key[-1] == "A":
             ghosts.append(Ghost(key, m))
 
-    for key, item in m.items():
-        network[key].L = network[item[0]]
-        network[key].R = network[item[1]]
-
-    for key, item in network.items():
-        # if key[-1] == "A":
-        item.calc_cost(turns[0] == "R", True, ma=len(network.keys()))
-
-    done = 0
-    t = time.time()
-    while done != len(ghosts):
-        done = 0
-        for g in ghosts:
+    for g in ghosts:
+        i = 0
+        while not g.done():
             g.move(turns[i % len(turns)])
-            if g.done():
-                done += 1
-        i += 1
-    return i
+            i += 1
+        periods.append(i)
+
+    return lcm(*periods)
 
 
 #### UTILITY FUNCTIONS ####
