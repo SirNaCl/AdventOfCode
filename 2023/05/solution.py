@@ -66,9 +66,86 @@ def translate_range(ran: list[int], map):
     return out
 
 
+def compress_ranges(r: list[range]):
+    r.sort(key=lambda x: x.start)
+    compressed = []
+    skip = False
+    for f, l in zip(r, r[1:]):
+        if skip:
+            skip = False
+            continue
+        if f.stop >= l.start:
+            compressed.append(range(f.start, max(l.stop, f.stop)))
+            skip = True
+        else:
+            compressed.append(f)
+
+    if not skip:
+        compressed.append(r[-1])
+    return compressed
+
+
+def map_ranges(rl: list[range], m: list[tuple[int, int, int]]) -> list[range]:
+    done = []
+    ran = rl.copy()
+    i = 0
+    while i < len(ran):
+        r = ran[i]
+        found = False
+        for dst, src, lng in m:
+            if r.start <= src < r.stop:
+                # head
+                done += map_ranges([range(r.start, src)], m)
+                # mid
+                new_start = src + (dst - src)
+                done.append(range(new_start, new_start + min(lng, r.stop - src)))
+                # tail
+                tail_start = src + lng
+                if tail_start < r.stop:
+                    done += map_ranges([range(tail_start, r.stop)], [(dst, src, lng)])
+                found = True
+                break
+
+            if src <= r.start < src + lng:
+                # head
+                # done.append(range(src, r.start))
+                # mid
+                new_start = r.start + (dst - src)
+                done.append(
+                    range(new_start, new_start + min(((src + lng) - r.start), len(r)))
+                )
+                # tail
+                tail_start = src + lng
+                if tail_start < r.stop:
+                    done += map_ranges([range(tail_start, r.stop)], [(dst, src, lng)])
+                found = True
+                break
+
+        if not found:
+            done.append(r)
+        i += 1
+
+    return compress_ranges(done)
+
+
+# for each map in input:
+# for each range in map:
+# if in_src <= src < in_src + in_len
+# split range into 3
+# head => decrease len to src-in_src => done
+# mid => decrease src with (dst - src), len = map len =>
+# tail => set range start to end of mid, len = in_len - mid_len => recurse
+
+# save min for each range after last step
+
+# dst src len
+# mod = dst - src
+# if src <= num < src + len
+#   num += mod
+
+
 def part2(data):
     """Solve part 2."""
-    rangeloc = []
     locations = []
     seedr = list()
     for i, (s, l) in enumerate(zip(data[0], data[0][1:])):
@@ -76,21 +153,17 @@ def part2(data):
             seedr.append((s, l))
 
     for rs, rl in seedr:
-        r = list(range(rs, rs + rl))
-        print(r)
-        r = translate_range(r, data[1])
-        print(r)
-        r = translate_range(r, data[2])
-        print(r)
-        r = translate_range(r, data[3])
-        print(r)
-        r = translate_range(r, data[4])
-        r = translate_range(r, data[4])
-        r = translate_range(r, data[5])
-        r = translate_range(r, data[6])
-        r = translate_range(r, data[7])
+        r = [range(rs, rs + rl)]
+        r = map_ranges(r, data[1])
+        r = map_ranges(r, data[2])
+        r = map_ranges(r, data[3])
+        r = map_ranges(r, data[4])
+        r = map_ranges(r, data[4])
+        r = map_ranges(r, data[5])
+        r = map_ranges(r, data[6])
+        r = map_ranges(r, data[7])
 
-        locations.append(min(r))
+        locations.append(r[0].start)
     return min(locations)
 
 
