@@ -1,6 +1,4 @@
 from functools import lru_cache
-from gettext import find
-from itertools import combinations
 import pathlib
 import pytest
 import os
@@ -63,33 +61,72 @@ def largest_many(pattern):
 
     return find_largest(pattern[0], l)
 
+def boring(slist: list[str], part2 = False):
+    ptr = 1
+    longest = 0
+    while ptr < len(slist):
+        found = True
+        b4 = slist[:ptr]
+        for f, l in zip(b4[::-1], slist[ptr:]):
+            if f != l:
+                found = False
+                break
+        if found:
+            longest = ptr
+
+        ptr += 1
+    return longest
+
 
 def part1(data):
     """Solve part 1."""
     tot = 0
     for p in data:
-        col = largest_many(p)
+        # col = largest_many(p)
+        # rows = [
+        #     "".join(r) for r in np.array([[c for c in col] for col in p]).T.tolist()
+        # ]
+        # row = largest_many(rows)
+        # cl = col[0] + (len(col[1]) // 2)
+        # rl = row[0] + (len(row[1]) // 2)
+        # if len(col[1]) > len(row[1]):
+        #     tot += cl
+        # else:
+        #     tot += rl * 100
         rows = [
-            "".join(r) for r in np.array([[c for c in col] for col in p]).T.tolist()
+            "".join(r) for r in np.array([list(col) for col in p]).T.tolist()
         ]
-        row = largest_many(rows)
-        cl = col[0] + (len(col[1]) // 2)
-        rl = row[0] + (len(row[1]) // 2)
-        if len(col[1]) > len(row[1]):
-            tot += cl
+        hor = boring(p) 
+        vert = boring(rows)
+
+        if hor > vert:
+            tot += hor*100
         else:
-            tot += rl * 100
+            tot += vert
     return tot
 
 
 def part2(data):
     """Solve part 2."""
+    tot = 0
+    for p in data:
+        rows = [
+            "".join(r) for r in np.array([list(col) for col in p]).T.tolist()
+        ]
+        hor = boring(p, True)
+        vert = boring(rows, True)
+
+        if hor > vert:
+            tot += hor*100
+        else:
+            tot += vert
+    return tot
 
 
 #### UTILITY FUNCTIONS ####
 def init():
     with open("aoc-key", "r") as keyfile:
-        os.environ["AOC_SESSION"] = keyfile.read()
+        os.environ["AOC_SESSION"] = keyfile.read().strip()
 
 
 def solve(puzzle_input):
