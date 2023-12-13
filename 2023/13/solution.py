@@ -61,21 +61,23 @@ def largest_many(pattern):
 
     return find_largest(pattern[0], l)
 
-def boring(slist: list[str], part2 = False):
+
+def boring(slist: list[str], part2=False):
     ptr = 1
-    longest = 0
     while ptr < len(slist):
-        found = True
         b4 = slist[:ptr]
+        diff = 0
         for f, l in zip(b4[::-1], slist[ptr:]):
             if f != l:
-                found = False
-                break
-        if found:
-            longest = ptr
+                for ff, ll in zip(f, l):
+                    if ff != ll:
+                        diff += 1
+
+        if (not part2 and diff == 0) or (part2 and diff == 1):
+            return ptr
 
         ptr += 1
-    return longest
+    return 0
 
 
 def part1(data):
@@ -93,14 +95,12 @@ def part1(data):
         #     tot += cl
         # else:
         #     tot += rl * 100
-        rows = [
-            "".join(r) for r in np.array([list(col) for col in p]).T.tolist()
-        ]
-        hor = boring(p) 
+        rows = ["".join(r) for r in np.array([list(col) for col in p]).T.tolist()]
+        hor = boring(p)
         vert = boring(rows)
 
         if hor > vert:
-            tot += hor*100
+            tot += hor * 100
         else:
             tot += vert
     return tot
@@ -110,14 +110,12 @@ def part2(data):
     """Solve part 2."""
     tot = 0
     for p in data:
-        rows = [
-            "".join(r) for r in np.array([list(col) for col in p]).T.tolist()
-        ]
+        rows = ["".join(r) for r in np.array([list(col) for col in p]).T.tolist()]
         hor = boring(p, True)
         vert = boring(rows, True)
 
         if hor > vert:
-            tot += hor*100
+            tot += hor * 100
         else:
             tot += vert
     return tot
