@@ -24,6 +24,7 @@ def transpose_counter_clock(l):
 def transpose_clock(l):
     return tuple([tuple(l) for l in np.rot90(np.array(l), -1).tolist()])
 
+
 def calc_no_slide(d):
     tot = 0
     for row in d:
@@ -39,27 +40,27 @@ def calc_load_n(d):
         rocks = []
         stop = 0
         for i, c in enumerate(row):
-            if c == 'O':
+            if c == "O":
                 rocks.append(stop)
                 stop += 1
-            elif c == '#':
-                stop = i+1
+            elif c == "#":
+                stop = i + 1
         for r in rocks:
-            tot += len(row)-r
+            tot += len(row) - r
     return tot
 
 
-@ lru_cache
+@lru_cache
 def slide_row(r):
-    tmp = ['.'] * len(r)
+    tmp = ["."] * len(r)
     stop = 0
     for i, c in enumerate(r):
-        if c == 'O':
-            tmp[stop] = 'O'
+        if c == "O":
+            tmp[stop] = "O"
             stop += 1
-        elif c == '#':
-            tmp[i] = '#'
-            stop = i+1
+        elif c == "#":
+            tmp[i] = "#"
+            stop = i + 1
     return tuple(tmp)
 
 
@@ -71,7 +72,7 @@ def slide(d):
 @lru_cache
 def cycle(d, n=1):
     r = d
-    for i in range(4*n):
+    for i in range(4 * n):
         r = slide(r)
         r = transpose_clock(r)
     return r
@@ -106,7 +107,8 @@ def part2(data):
     for i in range(1000):
         d = cycleMIL(d)
 
-    return calc_no_slide(transpose_clock(d))
+    return calc_no_slide(d)
+
 
 #### UTILITY FUNCTIONS ####
 
