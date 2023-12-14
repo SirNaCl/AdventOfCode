@@ -1,4 +1,3 @@
-from functools import lru_cache
 import pathlib
 import pytest
 import os
@@ -14,60 +13,15 @@ DAY = int(PUZZLE_DIR.name)
 def parse(puzzle_input):
     """Parse input."""
     p = puzzle_input.split("\n\n")
-    return [[l for l in pp.split("\n")] for pp in p]
-
-
-def is_sym(s):
-    for st, en in zip(s, s[-1::-1]):
-        if st != en:
-            return False
-    return True
-
-
-def substr(s, l):
-    r = []
-    for i in range(len(s) - l + 1):
-        r.append((i, s[i : i + l]))
-    return [r[0], r[-1]]
-
-
-@lru_cache
-def find_largest(string, ln=-1):
-    # Returns start, substr
-    if ln == -1:
-        ln = len(string)
-    if ln == 1:
-        return 0, string[0]
-
-    for i, sub in substr(string, ln):
-        if is_sym(sub):
-            return i, sub
-
-    return find_largest(string, ln - 1)
-
-
-def largest_many(pattern):
-    l = len(pattern[0])
-    found = False
-    while l > 1 and not found:
-        found = True
-        for f, s in zip(pattern, pattern[1:]):
-            fl = find_largest(f, l)
-            sl = find_largest(s, l)
-            if len(fl[1]) != len(sl[1]):
-                l -= 1
-                found = False
-                break
-
-    return find_largest(pattern[0], l)
+    return [list(pp.split("\n")) for pp in p]
 
 
 def boring(slist: list[str], part2=False):
     ptr = 1
     while ptr < len(slist):
-        b4 = slist[:ptr]
+        b4 = slist[: ptr]
         diff = 0
-        for f, l in zip(b4[::-1], slist[ptr:]):
+        for f, l in zip(b4[:: -1], slist[ptr:]):
             if f != l:
                 for ff, ll in zip(f, l):
                     if ff != ll:
@@ -84,18 +38,8 @@ def part1(data):
     """Solve part 1."""
     tot = 0
     for p in data:
-        # col = largest_many(p)
-        # rows = [
-        #     "".join(r) for r in np.array([[c for c in col] for col in p]).T.tolist()
-        # ]
-        # row = largest_many(rows)
-        # cl = col[0] + (len(col[1]) // 2)
-        # rl = row[0] + (len(row[1]) // 2)
-        # if len(col[1]) > len(row[1]):
-        #     tot += cl
-        # else:
-        #     tot += rl * 100
-        rows = ["".join(r) for r in np.array([list(col) for col in p]).T.tolist()]
+        rows = ["".join(r) for r in np.array([list(col)
+                                             for col in p]).T.tolist()]
         hor = boring(p)
         vert = boring(rows)
 
@@ -110,7 +54,8 @@ def part2(data):
     """Solve part 2."""
     tot = 0
     for p in data:
-        rows = ["".join(r) for r in np.array([list(col) for col in p]).T.tolist()]
+        rows = ["".join(r) for r in np.array([list(col)
+                                             for col in p]).T.tolist()]
         hor = boring(p, True)
         vert = boring(rows, True)
 
@@ -123,7 +68,7 @@ def part2(data):
 
 #### UTILITY FUNCTIONS ####
 def init():
-    with open("aoc-key", "r") as keyfile:
+    with open(PUZZLE_DIR / ".." / ".." / "aoc-key", "r") as keyfile:
         os.environ["AOC_SESSION"] = keyfile.read().strip()
 
 
