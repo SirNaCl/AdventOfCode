@@ -24,6 +24,14 @@ def transpose_counter_clock(l):
 def transpose_clock(l):
     return tuple([tuple(l) for l in np.rot90(np.array(l), -1).tolist()])
 
+def calc_no_slide(d):
+    tot = 0
+    for row in d:
+        for i, c in enumerate(row):
+            if c == "O":
+                tot += len(row) - i
+    return tot
+
 
 def calc_load_n(d):
     tot = 0
@@ -93,13 +101,12 @@ def part1(data):
 def part2(data):
     """Solve part 2."""
     d = tuple([tuple(d) for d in data])
+    d = transpose_counter_clock(d)
 
     for i in range(1000):
         d = cycleMIL(d)
-    for i in range(4):
-        d = transpose_counter_clock(d)
-        print(calc_load_n(d))
-    return calc_load_n(d)
+
+    return calc_no_slide(transpose_clock(d))
 
 #### UTILITY FUNCTIONS ####
 
