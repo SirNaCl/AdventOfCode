@@ -1,5 +1,4 @@
 from functools import lru_cache
-import math
 import pathlib
 import pytest
 import os
