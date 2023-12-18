@@ -1,5 +1,6 @@
 from itertools import product
 import pathlib
+import numpy as np
 import pytest
 import os
 from aocd.models import Puzzle
@@ -59,58 +60,117 @@ def part1(data):
     return path_len + sum(path.contains_points(list(candidates)))
 
 
+def range_intersects(a: range, b: range):
+    return len(range(max(a.start, b.start), min(a.stop, b.stop))) > 0
+
+
 def part2(data):
     """Solve part 2."""
     pos = [0, 0]
     points = [tuple(pos)]
     path_len = 0
-    max_col, max_row, min_col, min_row = 0, 0, 0, 0
     h = [d[2][2:-1] for d in data]
-    hexed = [(int(hh[-1]), int(f"0x{hh[:-1]}", 16)) for hh in h]
+    dehexed = [(int(hh[-1]), int(f"0x{hh[:-1]}", 16)) for hh in h]
+    horizontal = {}
+    vertical = {}
 
-    for d in hexed:
+    for d in dehexed:
         dd = (0, 0)
         match d[0]:
             case 0:
                 dd = (0, d[1])
+                if pos[0] in horizontal:
+                    horizontal[pos[0]].append(range(pos[1], pos[1] + d[1]))
+                else:
+                    horizontal[pos[0]] = [range(pos[1], pos[1] + d[1])]
             case 1:
                 dd = (d[1], 0)
+                if pos[1] in vertical:
+                    vertical[pos[1]].append(range(pos[0], pos[0] + d[1]))
+                else:
+                    vertical[pos[1]] = [range(pos[0], pos[0] + d[1])]
             case 2:
                 dd = (0, -d[1])
+                if pos[0] in horizontal:
+                    horizontal[pos[0]].append(range(pos[1] - d[1], pos[1]))
+                else:
+                    horizontal[pos[0]] = [range(pos[1] - d[1], pos[1])]
             case 3:
                 dd = (-d[1], 0)
+                if pos[1] in vertical:
+                    vertical[pos[1]].append(range(pos[0] - d[1], pos[0]))
+                else:
+                    vertical[pos[1]] = [range(pos[0] - d[1], pos[0])]
 
         path_len += d[1]
         pos[0] += dd[0]
         pos[1] += dd[1]
-        if pos[0] > max_row:
-            max_row = pos[0]
-        elif pos[0] < min_row:
-            min_row = pos[0]
-        if pos[1] > max_col:
-            max_col = pos[1]
-        elif pos[1] < min_col:
-            min_col = pos[1]
 
         points.append(tuple(pos))
 
     path = Path(points, closed=True)
-    tot = path_len
-    for r in range(min_row, max_row + 1):
-        ...
-    # all_coords = set(product(range(min_row, max_row + 1), range(min_row, max_col + 1)))
-    # candidates = all_coords
+    rows = []
+    cols = []
+    for r, c in points:
+        rows.append(r)
+        cols.append(c)
+    rows = sorted(set(rows))
+    cols = sorted(set(cols))
 
-    # for p1, p2 in zip(points, points[1:]):
-    #     if p1[0] == p2[0]:
-    #         candidates = candidates - set(zip([p1[0]] * p1[1], range(p1[1], p2[1] + 1)))
-    #     else:
-    #         candidates = candidates - set(zip([p1[1]] * p1[0], range(p1[0], p2[0] + 1)))
+    tot = 0
+    for i, rr in enumerate(rows[:-1]):
+        dr = rows[i + 1] - rr
+        for j, cc in enumerate(cols[:-1]):
+            # might need to add case for snuggling lines if main fails
+            dc = cols[j + 1] - cc
+            removed_top = False
+            removed_btm = False
+            removed_left = False
 
-    return tot  # + sum(path.contains_points(list(candidates)))
+            if path.contains_point((rr + 1, cc + 1)):
+                tot += (dr + 1) * (dc + 1)
+                # remove double counted side(s)
+                # top
+                if rr in horizontal:
+                    top = range(cc + 1, cc + dc - 1)
+                    if any([range_intersects(top, hor) for hor in horizontal[rr]]):
+                        tot -= dc
+                        removed_top = True
+                # left
+                if cc in vertical:
+                    left = range(rr + 1, rr + dr - 1)
+                    if any([range_intersects(left, vert) for vert in vertical[cc]]):
+                        tot -= dr
+                        removed_left = True
+                        # fix double remove
+                        if removed_top:
+                            tot += 1
+                # bottom if last row
+                if i == len(rows) - 2 and rows[-1] in horizontal:
+                    btm = range(cc, cc + dc)
+                    if any(
+                        [range_intersects(btm, hor) for hor in horizontal[rows[-1]]]
+                    ):
+                        removed_btm = True
+                        tot -= dc
+                        if removed_left:
+                            tot += 1
+                # right if last col
+                if j == len(cols) - 2 and cols[-1] in vertical:
+                    right = range(rr, rr + dr)
+                    if any(
+                        [range_intersects(right, vert) for vert in vertical[cols[-1]]]
+                    ):
+                        tot -= dr
+                        # fix double remove of corner
+                        if removed_btm:
+                            tot += 1
+                        if removed_top:
+                            tot += 1
+    return tot
 
 
-#### UTILITY FUNCTIONS ####
+#### UTILITY FUNCTIONS #### + 1)
 def init():
     with open("aoc-key", "r") as keyfile:
         os.environ["AOC_SESSION"] = keyfile.read()
