@@ -71,36 +71,18 @@ def part2(data):
     path_len = 0
     h = [d[2][2:-1] for d in data]
     dehexed = [(int(hh[-1]), int(f"0x{hh[:-1]}", 16)) for hh in h]
-    horizontal = {}
-    vertical = {}
 
     for d in dehexed:
         dd = (0, 0)
         match d[0]:
             case 0:
                 dd = (0, d[1])
-                if pos[0] in horizontal:
-                    horizontal[pos[0]].append(range(pos[1], pos[1] + d[1]))
-                else:
-                    horizontal[pos[0]] = [range(pos[1], pos[1] + d[1])]
             case 1:
                 dd = (d[1], 0)
-                if pos[1] in vertical:
-                    vertical[pos[1]].append(range(pos[0], pos[0] + d[1]))
-                else:
-                    vertical[pos[1]] = [range(pos[0], pos[0] + d[1])]
             case 2:
                 dd = (0, -d[1])
-                if pos[0] in horizontal:
-                    horizontal[pos[0]].append(range(pos[1] - d[1], pos[1]))
-                else:
-                    horizontal[pos[0]] = [range(pos[1] - d[1], pos[1])]
             case 3:
                 dd = (-d[1], 0)
-                if pos[1] in vertical:
-                    vertical[pos[1]].append(range(pos[0] - d[1], pos[0]))
-                else:
-                    vertical[pos[1]] = [range(pos[0] - d[1], pos[0])]
 
         path_len += d[1]
         pos[0] += dd[0]
@@ -108,70 +90,14 @@ def part2(data):
 
         points.append(tuple(pos))
 
-    path = Path(points, closed=True)
-    rows = []
-    cols = []
-    for r, c in points:
-        rows.append(r)
-        cols.append(c)
-    rows = sorted(set(rows))
-    cols = sorted(set(cols))
-    found = []
-
-    tot = 0
-    for i, rr in enumerate(rows[:-1]):
-        dr = rows[i + 1] - rr + 1
-        for j, cc in enumerate(cols[:-1]):
-            # might need to add case for snuggling lines if main fails
-            dc = cols[j + 1] - cc + 1
-            removed_top = False
-            removed_btm = False
-            removed_left = False
-
-            if path.contains_point((rr + 1, cc + 1)):
-                tot += dr * dc
-                # remove double counted side(s)
-                # top
-                if rr in horizontal:
-                    top = range(cc, cc + dc)
-                    if any([range_intersects(top, hor) for hor in horizontal[rr]]):
-                        tot -= dc
-                        removed_top = True
-                # left
-                if cc in vertical:
-                    left = range(rr, rr + dr)
-                    if any([range_intersects(left, vert) for vert in vertical[cc]]):
-                        tot -= dr
-                        removed_left = True
-                        # fix double remove
-                        if removed_top:
-                            tot += 1
-                # bottom
-                if rows[i + 1] in horizontal:
-                    btm = range(cc, cc + dc)
-                    if any(
-                        [range_intersects(btm, hor) for hor in horizontal[rows[i + 1]]]
-                    ):
-                        removed_btm = True
-                        tot -= dc
-                        if removed_left:
-                            tot += 1
-                # right-
-                if cols[j + 1] in vertical:
-                    right = range(rr, rr + dr)
-                    if any(
-                        [
-                            range_intersects(right, vert)
-                            for vert in vertical[cols[j + 1]]
-                        ]
-                    ):
-                        tot -= dr
-                        # fix double remove of corner
-                        if removed_btm:
-                            tot += 1
-                        if removed_top:
-                            tot += 1
-    return tot
+    a = 0
+    # https://en.wikipedia.org/wiki/Polygon just use formulas dumbo
+    for p1, p2 in zip(points[:], points[1:]):
+        a += p1[0] * p2[1] - p1[1] * p2[0]
+    a = abs(a) // 2
+    # compensate for path width
+    inside = a - (path_len // 2) + 1
+    return path_len + inside
 
 
 #### UTILITY FUNCTIONS #### + 1)
