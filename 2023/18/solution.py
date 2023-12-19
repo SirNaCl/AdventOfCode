@@ -116,50 +116,54 @@ def part2(data):
         cols.append(c)
     rows = sorted(set(rows))
     cols = sorted(set(cols))
+    found = []
 
     tot = 0
     for i, rr in enumerate(rows[:-1]):
-        dr = rows[i + 1] - rr
+        dr = rows[i + 1] - rr + 1
         for j, cc in enumerate(cols[:-1]):
             # might need to add case for snuggling lines if main fails
-            dc = cols[j + 1] - cc
+            dc = cols[j + 1] - cc + 1
             removed_top = False
             removed_btm = False
             removed_left = False
 
             if path.contains_point((rr + 1, cc + 1)):
-                tot += (dr + 1) * (dc + 1)
+                tot += dr * dc
                 # remove double counted side(s)
                 # top
                 if rr in horizontal:
-                    top = range(cc + 1, cc + dc - 1)
+                    top = range(cc, cc + dc)
                     if any([range_intersects(top, hor) for hor in horizontal[rr]]):
                         tot -= dc
                         removed_top = True
                 # left
                 if cc in vertical:
-                    left = range(rr + 1, rr + dr - 1)
+                    left = range(rr, rr + dr)
                     if any([range_intersects(left, vert) for vert in vertical[cc]]):
                         tot -= dr
                         removed_left = True
                         # fix double remove
                         if removed_top:
                             tot += 1
-                # bottom if last row
-                if i == len(rows) - 2 and rows[-1] in horizontal:
+                # bottom
+                if rows[i + 1] in horizontal:
                     btm = range(cc, cc + dc)
                     if any(
-                        [range_intersects(btm, hor) for hor in horizontal[rows[-1]]]
+                        [range_intersects(btm, hor) for hor in horizontal[rows[i + 1]]]
                     ):
                         removed_btm = True
                         tot -= dc
                         if removed_left:
                             tot += 1
-                # right if last col
-                if j == len(cols) - 2 and cols[-1] in vertical:
+                # right-
+                if cols[j + 1] in vertical:
                     right = range(rr, rr + dr)
                     if any(
-                        [range_intersects(right, vert) for vert in vertical[cols[-1]]]
+                        [
+                            range_intersects(right, vert)
+                            for vert in vertical[cols[j + 1]]
+                        ]
                     ):
                         tot -= dr
                         # fix double remove of corner
