@@ -112,10 +112,20 @@ def process_range(part: RangedPart, rule: list[tuple[str, str, int, str]]):
                         part.x = range(r[2], part.x.stop)
                     else:
                         new = RangedPart(
-                            range(r[2], part.x.stop), part.m, part.a, part.s
+                            range(r[2] + 1, part.x.stop), part.m, part.a, part.s
                         )
                         ret.append((r[3], new))
-                        part.x = range(part.x.start, r[2])
+                        part.x = range(part.x.start, r[2] + 1)
+                elif r[2] < part.x.start:
+                    if r[1] == ">":
+                        new = RangedPart(part.x, part.m, part.a, part.s)
+                        ret.append((r[3], new))
+                        part.x = range(0)
+                elif r[2] > part.x.stop:
+                    if r[1] == "<":
+                        new = RangedPart(part.x, part.m, part.a, part.s)
+                        ret.append((r[3], new))
+                        part.x = range(0)
 
             case "m":
                 if r[2] in part.m:
@@ -127,10 +137,20 @@ def process_range(part: RangedPart, rule: list[tuple[str, str, int, str]]):
                         part.m = range(r[2], part.m.stop)
                     else:
                         new = RangedPart(
-                            part.x, range(r[2], part.m.stop), part.a, part.s
+                            part.x, range(r[2] + 1, part.m.stop), part.a, part.s
                         )
                         ret.append((r[3], new))
-                        part.m = range(part.m.start, r[2])
+                        part.m = range(part.m.start, r[2] + 1)
+                elif r[2] < part.m.start:
+                    if r[1] == ">":
+                        new = RangedPart(part.x, part.m, part.a, part.s)
+                        ret.append((r[3], new))
+                        part.m = range(0)
+                elif r[2] > part.m.stop:
+                    if r[1] == "<":
+                        new = RangedPart(part.x, part.m, part.a, part.s)
+                        ret.append((r[3], new))
+                        part.m = range(0)
             case "a":
                 if r[2] in part.a:
                     if r[1] == "<":
@@ -141,10 +161,20 @@ def process_range(part: RangedPart, rule: list[tuple[str, str, int, str]]):
                         part.a = range(r[2], part.a.stop)
                     else:
                         new = RangedPart(
-                            part.x, part.m, range(r[2], part.a.stop), part.s
+                            part.x, part.m, range(r[2] + 1, part.a.stop), part.s
                         )
                         ret.append((r[3], new))
-                        part.a = range(part.a.start, r[2])
+                        part.a = range(part.a.start, r[2] + 1)
+                elif r[2] < part.a.start:
+                    if r[1] == ">":
+                        new = RangedPart(part.x, part.m, part.a, part.s)
+                        ret.append((r[3], new))
+                        part.a = range(0)
+                elif r[2] > part.a.stop:
+                    if r[1] == "<":
+                        new = RangedPart(part.x, part.m, part.a, part.s)
+                        ret.append((r[3], new))
+                        part.a = range(0)
             case "s":
                 if r[2] in part.s:
                     if r[1] == "<":
@@ -155,10 +185,19 @@ def process_range(part: RangedPart, rule: list[tuple[str, str, int, str]]):
                         part.s = range(r[2], part.s.stop)
                     else:
                         new = RangedPart(
-                            part.x, part.m, part.a, range(r[2], part.s.stop)
+                            part.x, part.m, part.a, range(r[2] + 1, part.s.stop)
                         )
                         ret.append((r[3], new))
-                        part.s = range(part.s.start, r[2])
+                        part.s = range(part.s.start, r[2] + 1)
+                elif r[2] < part.s.start and r[1] == ">":
+                    new = RangedPart(part.x, part.m, part.a, part.s)
+                    ret.append((r[3], new))
+                    part.s = range(0)
+                elif r[2] > part.s.stop:
+                    if r[1] == "<":
+                        new = RangedPart(part.x, part.m, part.a, part.s)
+                        ret.append((r[3], new))
+                        part.s = range(0)
 
     if part.tot > 0:
         ret.append((rule[-1][3], part))
