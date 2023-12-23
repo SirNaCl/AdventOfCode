@@ -70,45 +70,8 @@ def part1(data, example=False):
 def part2(data, example=False):
     """Solve part 2."""
     steps = 1000 if example else 26501365
-    s = None
-    for i, row in enumerate(data):
-        for j, col in enumerate(row):
-            if col == "S":
-                s = (i, j)
-                break
-        if s is not None:
-            break
-
-    assert s is not None
-
-    queue = set([s])
-    queuenext = set()
-    odd = set()
-    even = set()
-    for i in range(steps):
-        modalitynext = odd if i % 2 == 0 else even
-        while queue:
-            p = queue.pop()
-            pr, pc = p
-            nr, nc = (pr - 1) % len(data), pc % len(data[1])
-            if data[nr][nc] != "#" and (pr - 1, pc) not in modalitynext:
-                modalitynext.add((pr - 1, pc))
-                queuenext.add((pr - 1, pc))
-            nr = (pr + 1) % len(data)
-            if data[nr][nc] != "#" and (pr + 1, pc) not in modalitynext:
-                modalitynext.add((pr + 1, pc))
-                queuenext.add((pr + 1, pc))
-            nr, nc = pr % len(data), (pc - 1) % len(data[0])
-            if data[nr][nc] != "#" and (pr, pc - 1) not in modalitynext:
-                modalitynext.add((pr, pc - 1))
-                queuenext.add((pr, pc - 1))
-            nc = (pc + 1) % len(data[0])
-            if data[nr][nc] != "#" and (pr, pc + 1) not in modalitynext:
-                modalitynext.add((pr, pc + 1))
-                queuenext.add((pr, pc + 1))
-
-        queue = queuenext.copy()
-        queuenext = set()
+    size = len(data)
+    # use the empty row and col to calculate full maps
 
     return len(even if steps % 2 == 0 else odd)
 
