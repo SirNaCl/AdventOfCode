@@ -122,15 +122,17 @@ def topo_sort_splits(coords, branch=0):
                 nb += 1
 
     for cc in child_creat:
-        created.append(cc)
+        if isinstance(cc, int):
+            cc = {cc}
+        created += cc
 
-    for bn in created:
+    for bn in set(created):
         try:
             stacks[bn].append(coords)
         except:
             pass
     stacks[branch].append(coords)
-    return created
+    return set(created)
 
 
 def part2(data):
@@ -176,27 +178,25 @@ def part2(data):
     visited_s = [{k: False for k in adj.keys()}]
 
     topo_sort_splits(start)
-    dists = [{k: -(10**7) for k in adj.keys()}] * len(stacks)
     maxdist = 0
     succ = False
     for branch in range(len(stacks)):
-        dists[branch][start] = 0
+        dists = {k: -(10**7) for k in adj.keys()}
+        dists[start] = 0
         s = stacks[branch].copy()
         while stacks[branch]:
             u = stacks[branch].pop()
 
-            assert (d := dists[branch][u]) != -(10**7)
+            assert (d := dists[u]) != -(10**7)
 
             for a in adj[u]:
-                if dists[branch][a] < d + 1:
-                    dists[branch][a] = d + 1
-        if dists[branch][end] > maxdist:
+                if dists[a] < d + 1:
+                    dists[a] = d + 1
+        if dists[end] > maxdist:
             if succ:
-                maxdist = dists[branch][end]
-                print(s)
-                return maxdist
+                maxdist = dists[end]
             succ = True
-            maxdist = dists[branch][end]
+            maxdist = dists[end]
 
     return maxdist
 
