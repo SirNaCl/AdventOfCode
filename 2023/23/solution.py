@@ -98,91 +98,41 @@ def part1(data):
     return dists[end]
 
 
-def topo_sort_splits(coords, branch=0):
-    global visited_s, stacks, graph
-    visited_s[branch][coords] = True
-    created = []
-    child_creat = []
-    if len(graph[coords]) <= 1:
-        for a in graph[coords]:
-            if not visited_s[branch][a[0]]:
-                child_creat = topo_sort_splits(a[0], branch)
-    else:
-        for i, a in enumerate(graph[coords]):
-            if not visited_s[branch][a[0]]:
-                if len(created) > 0:
-                    visited_s.append(visited_s[branch].copy())
-                    stacks.append(stacks[branch].copy())
-                created.append(len(visited_s))
-        nb = 0
-        to_split = [branch] + created
-        for i, a in enumerate(graph[coords]):
-            if not visited_s[branch][a[0]]:
-                child_creat.append(topo_sort_splits(a[0], to_split[nb]))
-                nb += 1
+def gen_graph(nodes, adj):
+    graph = {n: {} for n in nodes}
+    for node in nodes:
+        visited = {node}
+        walkers = [(node, int(0))]  # pos, steps
+        while walkers:
+            wpos, steps = walkers.pop()
+            if wpos in nodes and steps > 0:
+                graph[node][wpos] = steps
+                continue
 
-    for cc in child_creat:
-        if isinstance(cc, int):
-            cc = {cc}
-        created += cc
+            for a in adj[wpos]:
+                if a not in visited:
+                    walkers.append((a, steps + 1))
+                    visited.add(a)
 
-    for bn in set(created):
-        try:
-            stacks[bn].append(coords)
-        except:
-            pass
-    stacks[branch].append(coords)
-    return set(created)
-
-
-def gen_graph(nodes, start, end):
-    graph = {n: list() for n in nodes}
-    walkers = [(adj[start][0], start, start, int(1))]  # curr, prevpos, prevnode, steps
-
-    while walkers:
-        wpos, wprevpos, wprevnode, steps = walkers.pop()
-        if wpos not in nodes:
-            npos = set(adj[wpos]) - {wprevpos}
-            walkers.append((npos.pop(), wpos, wprevnode, steps + 1))
-        else:
-            if wpos == end:
-                graph[wprevnode].append((wpos, steps))
-            else:
-                createnew = len(graph[wpos]) == 0
-                dup = False
-                # i dont think i need to store both
-                for i, edge in enumerate(graph[wprevnode]):
-                    if edge[0] == wpos:
-                        graph[wprevnode][i] = (wpos, max(edge[1], steps))
-                        dup = True
-                        break
-
-                if not dup:
-                    graph[wprevnode].append((wpos, steps))
-                dup = False
-
-                # double link
-                # i dont think i need to store both
-                for i, edge in enumerate(graph[wpos]):
-                    if edge[0] == wprevnode:
-                        graph[wpos][i] = (wprevnode, max(edge[1], steps))
-                        dup = True
-                        break
-
-                if not dup:
-                    graph[wpos].append((wprevnode, steps))
-
-                if createnew:
-                    npos = set(adj[wpos]) - {wprevpos}
-                    for nn in npos:
-                        walkers.append((nn, wpos, wpos, 1))
     return graph
+
+
+def search(node, end, graph, visited):
+    if node == end:
+        return 0
+
+    d = -float("inf")
+    visited.add(node)
+    for edge in graph[node]:
+        if edge not in visited:
+            d = max(d, search(edge, end, graph, visited) + graph[node][edge])
+    visited.remove(node)
+
+    return d
 
 
 def part2(data):
     """Solve part 2."""
-    global adj, visited_s, stacks, graph
-    stacks = [[]]
     start = (0, data[0].index("."))
     end = (len(data) - 1, data[-1].index("."))
 
@@ -223,26 +173,9 @@ def part2(data):
             if len(adj[n]) > 2:
                 nodes.append(n)
 
-    graph = gen_graph(nodes, start, end)
-    visited_s = [{k: False for k in graph.keys()}]
-
-    topo_sort_splits(start)
-    maxdist = 0
-    for branch in range(len(stacks)):
-        dists = {k: -(10**7) for k in graph.keys()}
-        dists[start] = 0
-        while stacks[branch]:
-            u = stacks[branch].pop()
-            assert (d := dists[u]) != -(10**7)
-            for a in graph[u]:
-                if dists[a[0]] < d + a[1]:
-                    dists[a[0]] = d + a[1]
-
-        if dists[end] > maxdist:
-            maxdist = dists[end]
-            print(maxdist)
-
-    return maxdist
+    graph = gen_graph(nodes, adj)
+    visited = set()
+    return search(start, end, graph, visited)
 
 
 #### UTILITY FUNCTIONS ####
