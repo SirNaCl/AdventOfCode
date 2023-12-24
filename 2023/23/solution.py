@@ -137,7 +137,6 @@ def part2(data):
     end = (len(data) - 1, data[-1].index("."))
 
     adj = {}
-
     n = start
     nodes = [start, end]
     for r, row in enumerate(data):
