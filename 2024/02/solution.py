@@ -11,14 +11,41 @@ DAY = int(PUZZLE_DIR.name)
 #### SOLUTION ####
 def parse(puzzle_input):
     """Parse input."""
+    return [[int(e) for e in line.split(" ")] for line in puzzle_input.split("\n")]
+
+
+def validate_row(r):
+    dir_up = r[1] > r[0]
+
+    for a, b in zip(r, r[1:]):
+        if abs(a - b) > 3 or a == b or (b > a) != dir_up:
+            return False
+
+    return True
 
 
 def part1(data):
     """Solve part 1."""
+    return sum([1 if validate_row(r) else 0 for r in data])
 
 
 def part2(data):
     """Solve part 2."""
+    tot = 0
+    for r in data:
+        found = validate_row(r)
+        i = 0
+        while not found and i < len(r):
+            rr = r[:i]
+            if i < len(r) - 1:
+                rr += r[i + 1 :]
+            found = validate_row(rr)
+            i += 1
+
+        if found:
+            tot += 1
+
+    return tot
 
 
 #### UTILITY FUNCTIONS ####
@@ -50,7 +77,7 @@ def submit(puzzle, ans_a, ans_b):
 
     if ans_b is None:
         print("No solution for part 2, skipping submission!")
-    elif puzzle.answered_b:
+    elif puzzle.answered_b or ans_b == 307:
         print(
             f"Already submitted correct answer b: {puzzle.answer_b}, you tried to submit {ans_b}!"
         )

@@ -1,7 +1,9 @@
 import pathlib
 import pytest
 import os
+import re
 from aocd.models import Puzzle
+
 
 PUZZLE_DIR = pathlib.Path(__file__).parent
 YEAR = int(PUZZLE_DIR.parent.name)
@@ -9,16 +11,48 @@ DAY = int(PUZZLE_DIR.name)
 
 
 #### SOLUTION ####
-def parse(puzzle_input):
+PATTERN = r"mul\(\d{1,3},\d{1,3}\)"
+PATTERN2 = r"mul\(\d{1,3},\d{1,3}\)|don't\(\)|do\(\)"
+
+
+def parse(puzzle_input, pattern):
     """Parse input."""
+    return re.findall(pattern, puzzle_input)
 
 
 def part1(data):
     """Solve part 1."""
+    tot = 0
+    for o in data:
+        s = o.split("(")[1]
+        s = s.split(")")[0]
+        a, b = s.split(",")
+        tot += int(a) * int(b)
+    return tot
 
 
-def part2(data):
+def part2(data: list[str]):
     """Solve part 2."""
+    tot = 0
+    sleeping = False
+    for o in data:
+        if o.count("don't()") == 1:
+            sleeping = True
+            continue
+
+        if o.count("do()") == 1:
+            sleeping = False
+            continue
+
+        if sleeping:
+            continue
+
+        s = o.split("(")[1]
+        s = s.split(")")[0]
+        a, b = s.split(",")
+        tot += int(a) * int(b)
+
+    return tot
 
 
 #### UTILITY FUNCTIONS ####
@@ -29,9 +63,12 @@ def init():
 
 def solve(puzzle_input):
     """Solve the puzzle for the given input."""
-    parsed = parse(puzzle_input)
+
+    parsed = parse(puzzle_input, PATTERN)
     data = parsed if parsed is not None else puzzle_input
     solution1 = part1(data)
+    parsed = parse(puzzle_input, PATTERN2)
+    data = parsed if parsed is not None else puzzle_input
     solution2 = part2(data)
 
     return solution1, solution2
