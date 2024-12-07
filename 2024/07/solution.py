@@ -11,14 +11,58 @@ DAY = int(PUZZLE_DIR.name)
 #### SOLUTION ####
 def parse(puzzle_input):
     """Parse input."""
+    p = []
+    for l in puzzle_input.split("\n"):
+        a, b = l.split(": ")
+        p.append((int(a), [int(bb) for bb in b.split(" ")]))
+
+    return p
+
+
+def do_op(a, b, op):
+    match op:
+        case 0:
+            return a + b
+        case 1:
+            return a * b
+        case 2:
+            return int(str(a) + str(b))
+
+
+def has_sol(target, row, concat=False):
+    operands = row.copy()
+    operands[0] = [operands[0]]
+
+    while len(operands) > 1:
+        a_list = operands.pop(0)
+        b = operands.pop(0)
+        pair_res = [
+            do_op(a, b, op) for op in range(2 if not concat else 3) for a in a_list
+        ]
+        operands.insert(0, pair_res)
+
+    return target in operands[0]
 
 
 def part1(data):
     """Solve part 1."""
+    tot = 0
+
+    for target, row in data:
+        if has_sol(target, row):
+            tot += target
+    return tot
 
 
 def part2(data):
     """Solve part 2."""
+    tot = 0
+
+    for target, row in data:
+        if has_sol(target, row, True):
+            tot += target
+
+    return tot
 
 
 #### UTILITY FUNCTIONS ####
