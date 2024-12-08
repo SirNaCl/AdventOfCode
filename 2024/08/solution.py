@@ -1,3 +1,5 @@
+from collections import defaultdict
+from math import sqrt
 import pathlib
 from time import perf_counter_ns
 import pytest
@@ -10,33 +12,89 @@ DAY = int(PUZZLE_DIR.name)
 
 
 #### SOLUTION ####
+
+rmax = 0
+cmax = 0
 p2 = False
 
 
 def parse(puzzle_input):
     """Parse input."""
+    global rmax
+    global cmax
+
+    lines = puzzle_input.split("\n")
+    rmax = len(lines) - 1
+    cmax = len(lines[0]) - 1
+    p = defaultdict(set)
+
+    for ri, row in enumerate(lines):
+        for ci, col in enumerate(row):
+            if col in ".":
+                continue
+            p[col].add((ri, ci))
+    return p
 
 
-def part1(data):
+def dist(p1, p2):
+    return sqrt(sum([abs(n1 - n2) ** 2 for n1, n2 in zip(p1, p2)]))
+
+
+def find_antinodes(nodes: set[tuple[int, int]]):
+    if len(nodes) == 1:
+        return set()
+
+    antinodes = set() if not p2 else nodes.copy()
+
+    for r1, c1 in nodes:
+        for r2, c2 in nodes:
+            if (r1, c1) == (r2, c2):
+                continue
+
+            dr = r2 - r1
+            dc = c2 - c1
+            rn, cn = r1 - dr, c1 - dc
+
+            while 0 <= rn <= rmax and 0 <= cn <= cmax:
+                antinodes.add((rn, cn))
+                if not p2:
+                    break
+
+                rn -= dr
+                cn -= dc
+
+    return antinodes
+
+
+def part1(data: dict[str, set[tuple[int, int]]]):
     """Solve part 1."""
+    antinodes = set()
+    for coords in data.values():
+        antinodes = antinodes.union(find_antinodes(coords))
+
+    return len(antinodes)
 
 
 def part2(data):
     """Solve part 2."""
     global p2
+
     p2 = True
+    antinodes = set()
+
+    for a in (find_antinodes(d) for d in data.values()):
+        antinodes = antinodes.union(a)
+
+    return len(antinodes)
 
 
 #### UTILITY FUNCTIONS ####
-def benchmark(func):
-    def timed(*args, **kwargs):
-        t1 = perf_counter_ns()
-        res = func(*args, **kwargs)
-        t2 = perf_counter_ns()
-        print(f"{func.__name__} took {(t2-t1)/1000000}ms")
-        return res
-
-    return timed
+def timed(f, *args):
+    t1 = perf_counter_ns()
+    res = f(*args)
+    t2 = perf_counter_ns()
+    print(f"{f.__name__} took {(t2-t1)/1000000}ms")
+    return res
 
 
 def init():
@@ -48,8 +106,8 @@ def solve(puzzle_input):
     """Solve the puzzle for the given input."""
     parsed = parse(puzzle_input)
     data = parsed if parsed is not None else puzzle_input
-    solution1 = part1(data)
-    solution2 = part2(data)
+    solution1 = timed(part1, data)
+    solution2 = timed(part2, data)
 
     return solution1, solution2
 
