@@ -1,4 +1,5 @@
 import pathlib
+from pprint import pprint
 from time import perf_counter_ns
 import pytest
 import os
@@ -18,7 +19,7 @@ def benchmark(func):
         t1 = perf_counter_ns()
         res = func(*args, **kwargs)
         t2 = perf_counter_ns()
-        print(f"{func.__name__} took {(t2-t1)/1000000}ms")
+        print(f"{func.__name__} took {(t2-t1)/1000000:.1f} ms")
         return res
 
     return timed
@@ -60,21 +61,21 @@ def part1(data):
     """Solve part 1."""
     blocks = data.copy()
     b = []
-    for bl in blocks:
-        b.extend([bl.id if not bl.free else -1] * bl.size)
+    for bb in blocks:
+        b.extend([bb.id] * bb.size)
 
-    i = len(b)
-    dot_idx = 0
+    idot = 0
+    inum = len(b) - 1
 
-    while i >= 0:
-        i -= 1
-        if b[i] == -1:
-            continue
+    while True:
+        while idot < inum and b[idot] != -1:
+            idot += 1
+        while idot < inum and b[inum] == -1:
+            inum -= 1
 
-        dot_idx = b.index(-1)
-        if dot_idx < i:
-            b[dot_idx] = b[i]
-            b[i] = -1
+        if idot >= inum:
+            break
+        b[idot], b[inum] = b[inum], b[idot]
 
     tot = 0
     for idx, bb in enumerate(b):
