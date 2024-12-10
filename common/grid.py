@@ -45,6 +45,13 @@ class GridBase(ABC):
     def __getitem__(self, idx):
         return self.grid[idx]
 
+    def __eq__(self, rhs) -> bool:
+        if self.rows != rhs.rows or self.cols != rhs.cols:
+            return False
+        return all(
+            self[r][c] == rhs[r][c] for r in range(self.rows) for c in range(self.cols)
+        )
+
     def find_all(self, target):
         coords = []
         for ri in range(self.rows):
@@ -86,10 +93,17 @@ class GridBase(ABC):
         g = self.to_graph(ignore, orthogonal)
         return shortest_path(g, source, target)
 
+    def shortest_path_only_source(self, source, ignore=[], orthogonal=True):
+        g = self.to_graph(ignore, orthogonal)
+        return shortest_path(g, source)
+
 
 class GridInt(GridBase):
-    def __init__(self, data: str, separator=" "):
-        g = [[int(c) for c in row.split(separator)] for row in data.split("\n")]
+    def __init__(self, data: str, separator=None):
+        if separator is None:
+            g = [[int(c) for c in row] for row in data.split("\n")]
+        else:
+            g = [[int(c) for c in row.split(separator)] for row in data.split("\n")]
         super().__init__(g)
 
     def copy(self):
@@ -99,8 +113,11 @@ class GridInt(GridBase):
 
 
 class GridChar(GridBase):
-    def __init__(self, data, separator=" "):
-        g = [[c for c in row.split(separator)] for row in data.split("\n")]
+    def __init__(self, data, separator=None):
+        if separator is None:
+            g = [[c for c in row] for row in data.split("\n")]
+        else:
+            g = [[c for c in row.split(separator)] for row in data.split("\n")]
         super().__init__(g)
 
     def copy(self):
@@ -115,8 +132,14 @@ TEST_DATA = """\
 7 8 9\
 """
 
+TEST_DATA2 = """\
+123
+456
+789\
+"""
+
 if __name__ == "__main__":
-    G = GridInt(TEST_DATA)
+    G = GridInt(TEST_DATA, " ")
     # Should contain every number except 5 (secret of sudoku btw)
     assert sum(G.neighbours(1, 1)) == 40
     assert G[1][1] == 5
@@ -132,3 +155,5 @@ if __name__ == "__main__":
     c = G.copy()
     G[1][0] = 4
     assert c[1][0] == 5
+    # No separator = split all chars
+    assert G == GridInt(TEST_DATA2)
