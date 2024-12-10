@@ -1,8 +1,13 @@
 import pathlib
-from time import perf_counter_ns
 import pytest
 import os
 from aocd.models import Puzzle
+from os import path
+import sys
+
+# add common util
+PATH_ROOT = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+sys.path.append(PATH_ROOT)
 
 PUZZLE_DIR = pathlib.Path(__file__).parent
 YEAR = int(PUZZLE_DIR.parent.name)
@@ -28,17 +33,6 @@ def part2(data):
 
 
 #### UTILITY FUNCTIONS ####
-def benchmark(func):
-    def timed(*args, **kwargs):
-        t1 = perf_counter_ns()
-        res = func(*args, **kwargs)
-        t2 = perf_counter_ns()
-        print(f"{func.__name__} took {(t2-t1)/1000000}ms")
-        return res
-
-    return timed
-
-
 def init():
     with open("aoc-key", "r") as keyfile:
         os.environ["AOC_SESSION"] = keyfile.read().strip()
