@@ -32,21 +32,22 @@ def remove_invalid_edges(G, data):
     invalid = set()
     for node, val in G.nodes(data=GRID_VALUE):
         for nrow, ncol in neighbors(G, node):
-            if abs(data[nrow][ncol] - val) != 1:
+            if data[nrow][ncol] - val != 1:
                 invalid.add((node, (nrow, ncol)))
+
     for edge in invalid:
         if G.has_edge(*edge):
             G.remove_edge(*edge)
 
 
-# 222ms
+# 94ms
 @benchmark
 def part1(data: GridInt):
     """Solve part 1."""
     tot = 0
     starts = data.find_all(0)
     ends = data.find_all(9)
-    G = data.to_graph()
+    G = data.to_graph().to_directed()
     remove_invalid_edges(G, data)
 
     for s in starts:
@@ -65,7 +66,7 @@ def part1(data: GridInt):
     return tot
 
 
-# 2201ms
+# 445ms
 @benchmark
 def part2(data: GridInt):
     """Solve part 2."""
@@ -75,7 +76,7 @@ def part2(data: GridInt):
     tot = 0
     starts = data.find_all(0)
     ends = data.find_all(9)
-    G = data.to_graph()
+    G = data.to_graph().to_directed()
     remove_invalid_edges(G, data)
 
     for s in starts:
