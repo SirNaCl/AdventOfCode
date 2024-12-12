@@ -4,10 +4,13 @@ import os
 from aocd.models import Puzzle
 from os import path
 import sys
+from pprint import pprint
 
 # add common util
 PATH_ROOT = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 sys.path.append(PATH_ROOT)
+
+import common
 
 PUZZLE_DIR = pathlib.Path(__file__).parent
 YEAR = int(PUZZLE_DIR.parent.name)
