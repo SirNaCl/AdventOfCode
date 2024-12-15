@@ -10,7 +10,9 @@ from pprint import pprint
 PATH_ROOT = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 sys.path.append(PATH_ROOT)
 
-import common
+from common.decorators import *
+from common.func import *
+from common.grid import *
 
 PUZZLE_DIR = pathlib.Path(__file__).parent
 YEAR = int(PUZZLE_DIR.parent.name)

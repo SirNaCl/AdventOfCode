@@ -6,6 +6,8 @@ from networkx import (
     shortest_path,
 )
 
+import common.parsing
+
 GRID_VALUE = "val"
 
 
