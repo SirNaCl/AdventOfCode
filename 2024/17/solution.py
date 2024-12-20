@@ -5,6 +5,7 @@ from aocd.models import Puzzle
 from os import path
 import sys
 from pprint import pprint
+from collections import Counter
 
 # add common util
 PATH_ROOT = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
@@ -44,7 +45,7 @@ STDOUT = []
 
 def get_comb() -> int:
     if I_PTR + 1 == len(PROG):
-        raise Exception("SIGTERM")
+        raise StopIteration("SIGTERM")
     combo = PROG[I_PTR + 1]
     match (combo):
         case 0:
@@ -62,7 +63,7 @@ def get_comb() -> int:
         case 6:
             return REGS["C"]
         case 7:
-            raise Exception("INVALID COMBO OPERATOR 7!")
+            raise RuntimeError("INVALID COMBO OPERATOR 7!")
     return -1
 
 
@@ -97,7 +98,7 @@ def jnz():
 
 def bxc():
     global I_PTR
-    REGS["B"] = REGS["B"] ^ REGS["C"]  # prob always one but just to be sure
+    REGS["B"] = REGS["B"] ^ REGS["C"]
     I_PTR += 2
 
 
@@ -127,6 +128,12 @@ def cdv():
 OPS = [adv, bxl, bst, jnz, bxc, out, bdv, cdv]
 
 
+def step():
+    OPS[PROG[I_PTR]]()
+
+
+# 0.15ms
+@benchmark
 def part1(data):
     """Solve part 1."""
     global REGS
@@ -134,29 +141,61 @@ def part1(data):
     regs, prog = data
     REGS = regs
     PROG = prog
-    print(", ".join([f"{i}: {OPS[i].__name__}" for i in prog]))
 
     while I_PTR < len(prog):
-        op = OPS[PROG[I_PTR]]
-        print(f"{I_PTR=}")
-        print(op.__name__)
         try:
-            print(get_comb())
-        except:
-            pass
-        pprint(regs)
-        try:
-            op()
+            step()
         except:
             return ",".join(map(str, STDOUT))
 
     return ",".join(map(str, STDOUT))
 
 
+def do_iter(A: int):
+    global REGS
+    global I_PTR
+
+    I_PTR = 0
+    REGS["A"] = A
+    REGS["B"] = 0
+    REGS["C"] = 0
+
+    while I_PTR <= 12:
+        step()
+
+
+# iter: bst, bxl, cdv, bxl, adv, bxc -> print B
+def get_canditates(a_targs: list[int], out: int):
+    # a_targs: Possible finishes for A, out: the value we want printed out (reg b)
+    cands = []
+    for a in a_targs:
+        a_max = (a + 1) * 8
+        c = range(a_max - 8, a_max + 1)
+        for A in c:
+            do_iter(A)
+            if REGS["B"] % 8 == out:
+                cands.append(A)
+    return cands
+
+
+# 2.7ms
+@benchmark
 def part2(data):
     """Solve part 2."""
     global p2
+    global REGS
+    global PROG
+
     p2 = True
+    regs, prog = data
+    REGS = regs
+    PROG = prog
+    targ_prev = [0]
+    for op in reversed(prog):
+        targ = get_canditates(targ_prev, op)
+        targ_prev = targ
+
+    return targ_prev[0]
 
 
 #### UTILITY FUNCTIONS ####
