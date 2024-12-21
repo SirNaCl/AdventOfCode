@@ -1,4 +1,4 @@
-advent-of-code-data==2.0.1
+advent-of-code-data==2.0.4
 advent-of-code-ocr==1.0.0
 aocd-example-parser==2023.2
 beautifulsoup4==4.12.2
