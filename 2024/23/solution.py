@@ -1,3 +1,4 @@
+from itertools import starmap
 import pathlib
 import pytest
 import os
@@ -31,10 +32,7 @@ p2 = False
 def parse(puzzle_input):
     """Parse input."""
     G = nx.Graph()
-    for line in puzzle_input.split("\n"):
-        pair = line.split("-")
-        G.add_edge(*pair)
-
+    deque(starmap(G.add_edge, [line.split('-') for line in puzzle_input.split('\n')]))
     return G
 
 
