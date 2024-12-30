@@ -1,5 +1,6 @@
 from collections import defaultdict
 from collections.abc import Callable
+from itertools import combinations, pairwise, permutations
 import pathlib
 import pytest
 import os
@@ -27,12 +28,15 @@ DAY = int(PUZZLE_DIR.name)
 #### SOLUTION ####
 p2 = False
 
+
 @dataclass
-class Rule():
+class Rule:
     op: Callable
     a: str
     b: str
-    
+
+    def __repr__(self) -> str:
+        return f"{self.a} {self.op.__name__} {self.b}"
 
 
 def OR(a, b):
@@ -46,138 +50,153 @@ def XOR(a, b):
 def AND(a, b):
     return a & b
 
+
 def get_op(s):
-    match(s):
-        case 'XOR':
+    match (s):
+        case "XOR":
             return XOR
-        case 'AND':
+        case "AND":
             return AND
-        case 'OR':
+        case "OR":
             return OR
 
     raise ValueError(f"invalid op {s}")
+
 
 def parse(puzzle_input):
     """Parse input."""
     state = dict()
     st, ru = puzzle_input.split("\n\n")
-    for s in st.split('\n'):
+    for s in st.split("\n"):
         k, v = s.split(": ")
         state[k] = int(v)
 
-
     rules = dict()
     for r in ru.split("\n"):
-        rr = r.split(' ')
+        rr = r.split(" ")
         a, o, b, _, k = rr
         op = get_op(o)
         rules[k] = Rule(op, a, b)
 
     return state, rules
 
-def part1(data):
-    """Solve part 1."""
-    state, rules = data
-    state = state.copy()
-    zs = [key for key in rules if key.startswith('z')]
+
+def resolve(state, rules):
+    _state = state.copy()
 
     def finished():
-        return all(key in state for key in zs)
+        return all(key in _state for key in rules)
 
+    i = 0
     while not finished():
         for k, r in rules.items():
-            if r.a in state and r.b in state:
-                state[k] = r.op(state[r.a], state[r.b])
+            if r.a in _state and r.b in _state:
+                _state[k] = r.op(_state[r.a], _state[r.b])
+        i += 1
+        if i == 1000:
+            raise RuntimeError("Inf")
 
-    tot = ''
+    return _state
+
+
+def part1(data):
+    """Solve part 1."""
+    _, rules = data
+
+    zs = [key for key in rules if key.startswith("z")]
+    state = resolve(*data)
+
+    tot = ""
     for z in sorted(zs):
         tot = str(state[z]) + tot
 
     return int(tot, 2)
-    
+
+
+def ancestors(rules, node: str):
+    anc: list[str] = []
+    queue: list[str] = [node]
+
+    while len(queue) > 0:
+        n = queue.pop(0)
+        anc.insert(0, n)
+        if n in rules:
+            queue.append(rules[n].a)
+            queue.append(rules[n].b)
+
+    return anc
+
+
+def to_node(prefix: str, num: int):
+    return prefix + str(num).zfill(2)
+
+
+def find_invalid(state):
+    x = ""
+    y = ""
+    z = ""
+
+    for k in sorted(state.keys()):
+        if k.startswith("x"):
+            x = str(state[k]) + x
+        elif k.startswith("y"):
+            y = str(state[k]) + y
+        elif k.startswith("z"):
+            z = str(state[k]) + z
+
+    x = int(x, 2)
+    y = int(y, 2)
+    target = x + y
+    z = int(z, 2)
+    incorrect = target ^ z
+
+    # z nodes with incorrect state
+    inval_nodes: list[int] = []
+    for i, b in enumerate(reversed(bin(incorrect)[2:])):
+        if b == "1":
+            inval_nodes.append(i)
+    return inval_nodes
+
+
+def print_anc(rules, k, valid):
+    s = set(ancestors(rules, to_node("z", k))).difference(
+        set(ancestors(rules, to_node("z", k - 1)))
+    )
+    print(f'====={to_node("z", k)}====({"valid" if valid else "invalid"})')
+    for ss in s:
+        if ss in rules:
+            print(f"{ss} = {rules[ss]}")
+
+    print("============")
 
 
 def part2(data):
     """Solve part 2."""
     global p2
     p2 = True
-    state, rules = data
-    state = state.copy()
-    x = ''
-    y = ''
-    zs = [key for key in rules if key.startswith('z')]
+    state_start, rules = data
+    # Solution was found by manually inspecting the invalid nodes and inserting swaps into list below
+    swaps = []
 
-    state_keys = state.keys()
-    print(len(rules))
+    l = []
+    for s in swaps:
+        l += list(s)
 
-    for k in sorted(state_keys):
-        if k.startswith('x'):
-            x = str(state[k]) + x
-        elif k.startswith('y'):
-            y = str(state[k]) + y
+    for a, b in swaps:
+        rules[a], rules[b] = rules[b], rules[a]
 
-    x = int(x, 2)
-    y = int(y, 2)
-    target = x + y
-
-    def finished():
-        return all(key in state for key in zs)
-
-    while not finished():
-        for k, r in rules.items():
-            if r.a in state and r.b in state:
-                state[k] = r.op(state[r.a], state[r.b])
-
-    actual = ''
-    for z in sorted(zs):
-        actual = str(state[z]) + actual
-
-    actual = int(actual, 2)
-    incorrect = target ^ actual
-    inval_nodes = []
-    val_nodes = []
-    for i, b in enumerate(reversed(bin(incorrect)[2:])):
-        if b == '1':
-            inval_nodes.append('z' + str(i).zfill(2))
-        else:
-            val_nodes.append('z' + str(i).zfill(2))
-
-
-    G = nx.DiGraph()
-    for k,v in rules.items():
-        G.add_edge(v.a, k)
-        G.add_edge(v.b, k)
-
-    sanc = set()
-    anc = defaultdict(list)
-    for n in inval_nodes:
-        for a in nx.ancestors(G, n):
-            if re.match(r"[y|x]\d+", a) is None:
-                anc[n].append(a)
-                sanc.add(a)
-
-    sancval = set()
-    for n in val_nodes:
-        for a in nx.ancestors(G, n):
-            if re.match(r"[y|x]\d+", a) is None:
-                sancval.add(a)
-
-    # pprint(anc)
-    # pprint(anc_val)
-    only_inv = sanc.difference(sancval)    
-    only_val = sancval.difference(sanc)    
+    state = resolve(state_start, rules)
+    inval_nodes = find_invalid(state)
     print(inval_nodes)
-    print(f"{len(only_inv)=} {len(only_val)=}")
-    print(bin(actual))
-    print(bin(target))
-    print('0b' + bin(incorrect)[2:].zfill(46))
-    for v in anc.values():
-        for s in sancval:
-            if s in v:
-                v.remove(s)
+
+    for k in inval_nodes:
+        if k - 1 not in inval_nodes:
+            print_anc(rules, k - 1, True)
+        print_anc(rules, k, False)
 
 
-
+    r = ",".join(sorted(l))
+    print(r)
 
 
 #### UTILITY FUNCTIONS ####
