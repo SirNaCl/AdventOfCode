@@ -41,5 +41,5 @@ six==1.16.0
 soupsieve==2.5
 tzdata==2023.3
 urllib3>=2.2.2
-virtualenv==20.25.0
+virtualenv==20.26.6
 wheel==0.41.3
