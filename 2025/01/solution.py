@@ -1,4 +1,5 @@
 import pathlib
+import math
 import pytest
 import os
 from aocd.models import Puzzle
@@ -26,16 +27,41 @@ p2 = False
 
 def parse(puzzle_input):
     """Parse input."""
-
+    return [int(n) for n in puzzle_input.replace('L','-').replace('R','').split('\n')]
 
 def part1(data):
     """Solve part 1."""
+    zs = 0
+    d = 50
+    for n in data:
+        d += n
+        d %= 100
+
+        if d == 0:
+            zs += 1
+    return zs
 
 
 def part2(data):
     """Solve part 2."""
     global p2
     p2 = True
+    zs = 0
+    d = 50
+    for n in data:
+        dprev = d
+        d += n
+
+        if d == 0:
+            zs += 1
+        else:
+            zs += abs(d) // 100
+            if d < 0 and dprev != 0:
+                zs += 1
+
+        d %= 100
+
+    return zs
 
 
 #### UTILITY FUNCTIONS ####
