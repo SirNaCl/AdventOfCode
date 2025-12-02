@@ -6,6 +6,7 @@ from os import path
 import sys
 from pprint import pprint
 import git
+import re
 
 # add common util
 PATH_ROOT = git.Repo(__file__, search_parent_directories=True).git.rev_parse(
@@ -27,18 +28,51 @@ DAY = int(PUZZLE_DIR.name)
 p2 = False
 
 
+def invalid_id(s, l):
+    if p2:
+        PATTERN = r"^(?P<pattern>\d+)(?P=pattern)+$"
+    else:
+        PATTERN = r"^(?P<pattern>[\d]{" + str(l) + r"})(?P=pattern)$"
+
+    match = re.match(PATTERN, s)
+    return match is not None
+
+
 def parse(puzzle_input):
     """Parse input."""
+    return [s.split("-") for s in puzzle_input.split(",")]
 
 
 def part1(data):
     """Solve part 1."""
+    global p2
+    p2 = False
+    tot = 0
+    for r1, r2 in data:
+        start = int(r1)
+        stop = int(r2)
+        tot += sum(
+            i if len(str(i)) % 2 == 0 and invalid_id(str(i), len(str(i)) // 2) else 0
+            for i in range(start, stop + 1)
+        )
+
+    return tot
 
 
 def part2(data):
     """Solve part 2."""
     global p2
     p2 = True
+    tot = 0
+    for r1, r2 in data:
+        start = int(r1)
+        stop = int(r2)
+        for i in range(start, stop + 1):
+            for p_len in range(1, len(str(i)) // 2 + 1):
+                if invalid_id(str(i), p_len):
+                    tot += i
+                    break
+    return tot
 
 
 #### UTILITY FUNCTIONS ####
