@@ -30,6 +30,11 @@ class GridBase(ABC):
 
         itr = set(product(r_itr, c_itr))
         itr.remove((0, 0))
+        for r, c in itr.copy():
+            if row + r < 0 or row + r >= self.rows:
+                itr.remove((r, c))
+            elif col + c < 0 or col + c >= self.cols:
+                itr.remove((r, c))
 
         return [(row + r, col + c) for r, c in itr]
 
